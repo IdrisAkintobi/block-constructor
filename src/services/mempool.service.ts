@@ -48,22 +48,19 @@ export class MempoolService {
     private static sortTransactionsByFee(
         transactions: TransactionInterface[],
     ): TransactionInterface[] {
-        // Remove duplicate transactions, favoring the one with the higher fee
+        // Remove duplicate transactions, favoring the one with the higher fee and lower weight
         const uniqueTransactions = new Map<string, TransactionInterface>();
         for (const transaction of transactions) {
             if (!uniqueTransactions.has(transaction.txid)) {
                 uniqueTransactions.set(transaction.txid, transaction);
             } else {
                 const existingTransaction = uniqueTransactions.get(transaction.txid);
-                const existingFeeByWeight = existingTransaction!.fee / existingTransaction!.weight;
-                const newFeeByWeight = transaction.fee / transaction.weight;
 
-                if (newFeeByWeight > existingFeeByWeight) {
+                if (existingTransaction!.fee < transaction.fee) {
                     uniqueTransactions.set(transaction.txid, transaction);
                 } else if (
-                    // If the fee per weight is the same, favor the transaction with the higher fee
-                    newFeeByWeight === existingFeeByWeight &&
-                    transaction.fee > existingTransaction!.fee
+                    existingTransaction!.fee === transaction.fee &&
+                    existingTransaction!.weight > transaction.weight
                 ) {
                     uniqueTransactions.set(transaction.txid, transaction);
                 }
