@@ -1,6 +1,6 @@
-import { parse } from "csv-parse";
-import { createReadStream } from "node:fs";
-import { TransactionInterface } from "../types/interfaces";
+import { parse } from 'csv-parse';
+import { createReadStream } from 'node:fs';
+import { TransactionInterface } from '../types/interfaces';
 
 export class MempoolService {
     public static async readMempool(filePath: string): Promise<TransactionInterface[]> {
@@ -8,15 +8,15 @@ export class MempoolService {
         const transactions: TransactionInterface[] = [];
 
         const parser = parse({
-            delimiter: ",",
+            delimiter: ',',
             trim: true,
             skipEmptyLines: true,
-            quote: "",
+            quote: '',
             // remove quotes from fields
-            onRecord: (record) => record.map((field: string) => field.replace(/"/g, "")),
+            onRecord: record => record.map((field: string) => field.replace(/"/g, '')),
         });
 
-        parser.on("readable", () => {
+        parser.on('readable', () => {
             let record;
             while ((record = parser.read())) {
                 const [txid, fee, weight, parentTxids] = record;
@@ -24,20 +24,20 @@ export class MempoolService {
                     txid,
                     fee: parseInt(fee, 10),
                     weight: parseInt(weight, 10),
-                    parentTxids: parentTxids ? parentTxids.split(";") : [],
+                    parentTxids: parentTxids ? parentTxids.split(';') : [],
                 });
             }
         });
 
-        parser.on("error", (err) => {
-            console.error(`Error parsing file ${filePath}`);
+        parser.on('error', err => {
+            console.error(`Error parsing file ${filePath}`, err);
         });
 
         fileStream.pipe(parser);
 
         // wait for the parser to finish
-        await new Promise((resolve) => {
-            parser.on("end", resolve);
+        await new Promise(resolve => {
+            parser.on('end', resolve);
         });
 
         const sortedTransactions = this.sortTransactionsByFee(transactions);
@@ -46,7 +46,7 @@ export class MempoolService {
     }
 
     private static sortTransactionsByFee(
-        transactions: TransactionInterface[]
+        transactions: TransactionInterface[],
     ): TransactionInterface[] {
         // Remove duplicate transactions, favoring the one with the higher fee
         const uniqueTransactions = new Map<string, TransactionInterface>();

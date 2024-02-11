@@ -1,4 +1,4 @@
-import { TransactionInterface } from "../types/interfaces";
+import { TransactionInterface } from '../types/interfaces';
 
 export class BlockConstructorService {
     private readonly MAX_BLOCK_WEIGHT = 4_000_000;
@@ -15,7 +15,7 @@ export class BlockConstructorService {
                 // Check if the transaction parents are processable
                 const { isProcessable, parents } = await this.isProcessableParents(
                     transaction,
-                    mempool
+                    mempool,
                 );
                 if (!isProcessable) continue;
 
@@ -44,9 +44,8 @@ export class BlockConstructorService {
 
     private async isProcessableParents(
         transaction: TransactionInterface,
-        mempool: TransactionInterface[]
+        mempool: TransactionInterface[],
     ): Promise<{ isProcessable: boolean; parents: TransactionInterface[] }> {
-        let totalFee = transaction.fee;
         const unprocessedParents: TransactionInterface[] = [];
 
         // Recursively map the parent txids to their transactions
@@ -54,7 +53,7 @@ export class BlockConstructorService {
         const mapParentTxidToTransaction = (transaction: TransactionInterface) => {
             for (const parentTxid of transaction.parentTxids) {
                 if (this.processedTransactions.has(parentTxid)) continue;
-                const parentTransaction = mempool.find((tx) => tx.txid === parentTxid);
+                const parentTransaction = mempool.find(tx => tx.txid === parentTxid);
                 if (!parentTransaction) {
                     successfullyMappedParents = false;
                     break;
@@ -63,7 +62,6 @@ export class BlockConstructorService {
                     mapParentTxidToTransaction(parentTransaction);
                 }
                 unprocessedParents.push(parentTransaction);
-                totalFee += parentTransaction.fee;
             }
         };
 
