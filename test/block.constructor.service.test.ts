@@ -45,6 +45,32 @@ describe('BlockConstructorService test', () => {
         expect(block.length).toBe(2);
     });
 
+    it('should add grandparent transactions first', async () => {
+        const blockConstructorService = new BlockConstructorService();
+        const block = await blockConstructorService.constructBlock([
+            { ...mockTransaction, parentTxids: ['tx2'], weight: 2 },
+            { ...mockTransaction, txid: 'tx2', parentTxids: ['tx3'], weight: 1 },
+            { ...mockTransaction, txid: 'tx3', weight: 1 },
+        ]);
+        expect(block).toBeDefined();
+        expect(block.length).toBe(3);
+        expect(block[0].txid).toBe('tx3');
+        expect(block[1].txid).toBe('tx2');
+        expect(block[2].txid).toBe('tx1');
+    });
+
+    it('should add parent transactions first', async () => {
+        const blockConstructorService = new BlockConstructorService();
+        const block = await blockConstructorService.constructBlock([
+            { ...mockTransaction, parentTxids: ['tx2'], weight: 2 },
+            { ...mockTransaction, txid: 'tx2', weight: 1 },
+        ]);
+        expect(block).toBeDefined();
+        expect(block.length).toBe(2);
+        expect(block[0].txid).toBe('tx2');
+        expect(block[1].txid).toBe('tx1');
+    });
+
     it('should not add transaction with parents, if they exceeds block weight', async () => {
         const blockConstructorService = new BlockConstructorService();
         const block = await blockConstructorService.constructBlock([
