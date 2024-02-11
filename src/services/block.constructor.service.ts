@@ -12,16 +12,17 @@ export class BlockConstructorService {
             if (this.currentBlockWeight + transaction.weight > this.MAX_BLOCK_WEIGHT) continue;
 
             if (transaction.parentTxids.length > 0) {
-                // Check if the transaction is profitable with its parents
-                const { isProfitable, parents } = await this.isProfitableTransactionWithParents(
+                // Check if the transaction parents are processable
+                const { isProcessable, parents } = await this.isProcessableParents(
                     transaction,
                     mempool
                 );
-                if (!isProfitable) continue;
+                if (!isProcessable) continue;
 
                 // Check if the parents can fit in the block
                 const parentTxWeight = parents.reduce((acc, tx) => acc + tx.weight, 0);
-                if (this.currentBlockWeight + parentTxWeight > this.MAX_BLOCK_WEIGHT) continue;
+                const chainWeight = parentTxWeight + transaction.weight;
+                if (this.currentBlockWeight + chainWeight > this.MAX_BLOCK_WEIGHT) continue;
 
                 // Add the parents to the block first
                 for (const parent of parents) {
@@ -41,10 +42,10 @@ export class BlockConstructorService {
         this.processedTransactions.add(transaction.txid);
     }
 
-    private async isProfitableTransactionWithParents(
+    private async isProcessableParents(
         transaction: TransactionInterface,
         mempool: TransactionInterface[]
-    ): Promise<{ isProfitable: boolean; parents: TransactionInterface[] }> {
+    ): Promise<{ isProcessable: boolean; parents: TransactionInterface[] }> {
         let totalFee = transaction.fee;
         const unprocessedParents: TransactionInterface[] = [];
 
@@ -67,25 +68,8 @@ export class BlockConstructorService {
         };
 
         mapParentTxidToTransaction(transaction);
-        if (!successfullyMappedParents) return { isProfitable: false, parents: [] };
+        if (!successfullyMappedParents) return { isProcessable: false, parents: [] };
 
-        // Check if the total fee/weight of the transaction and its parents is greater than the next n transactions in the mempool
-        const totalTransactionsToProcess = unprocessedParents.length + 1;
-        const totalWeight = unprocessedParents.reduce(
-            (acc, tx) => acc + tx.weight,
-            transaction.weight
-        );
-
-        // Get the fee and weight of the next n transactions to process in the mempool
-        const nextTransactionIndex = mempool.indexOf(transaction) + 1;
-        const nextTransactions = mempool.slice(
-            nextTransactionIndex,
-            nextTransactionIndex + totalTransactionsToProcess
-        );
-        const nextTransactionsFee = nextTransactions.reduce((acc, tx) => acc + tx.fee, 0);
-        const nextTransactionsWeight = nextTransactions.reduce((acc, tx) => acc + tx.weight, 0);
-
-        const isProfitable = totalFee / totalWeight > nextTransactionsFee / nextTransactionsWeight;
-        return { isProfitable, parents: unprocessedParents };
+        return { isProcessable: true, parents: unprocessedParents };
     }
 }
