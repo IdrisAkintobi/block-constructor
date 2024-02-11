@@ -1,0 +1,32 @@
+{
+    "name": "block-constructor",
+    "version": "1.0.0",
+    "description": "Btrust block constructor challenge solution",
+    "main": "dist/index.js",
+    "scripts": {
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "build": "rm -rf dist && tsc",
+        "start": "node dist/index.js",
+        "dev": "ts-node src/index.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/IdrisAkintobi/block-constructor.git"
+    },
+    "author": "Idris Akintobi",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/IdrisAkintobi/block-constructor/issues"
+    },
+    "homepage": "https://github.com/IdrisAkintobi/block-constructor#readme",
+    "devDependencies": {
+        "@types/jest": "^29.5.12",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    },
+    "dependencies": {
+        "csv-parse": "^5.5.3"
+    }
+}
